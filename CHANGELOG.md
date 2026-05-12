@@ -1,3 +1,7 @@
+# Unreleased
+
++ Add `before_save` commands for cleaning cache contents before archive/upload.
+
 # v2.4.11
 
 + Fix restore on tarball backend. See #43 by @atty303

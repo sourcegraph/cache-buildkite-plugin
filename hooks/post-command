@@ -41,6 +41,8 @@ if [[ "${BUILDKITE_PLUGIN_CACHE_PR:-true}" =~ (false|off|0) ]]; then
   fi
 fi
 
+before_save=()
+
 if [[ -n "${BUILDKITE_PLUGIN_CACHE_KEY:-}" ]]; then
 
   # Defaults...
@@ -63,6 +65,24 @@ if [[ -n "${BUILDKITE_PLUGIN_CACHE_KEY:-}" ]]; then
 
   if [ -f "$BK_CACHE_BASEDIR/lib/backends/$BK_CACHE_BACKEND.bash" ]; then
     . "$BK_CACHE_BASEDIR/lib/backends/$BK_CACHE_BACKEND.bash"
+
+    if [[ -n "${BUILDKITE_PLUGIN_CACHE_BEFORE_SAVE:-}" ]]; then
+      before_save+=("$BUILDKITE_PLUGIN_CACHE_BEFORE_SAVE")
+    fi
+
+    while IFS='=' read -r command _; do
+      if [[ $command =~ ^(BUILDKITE_PLUGIN_CACHE_BEFORE_SAVE_[0-9]+) ]]; then
+        before_save+=("${!command}")
+      fi
+    done < <(env | sort)
+
+    if [ "${#before_save[@]}" -gt 0 ]; then
+      echo -e "${BK_LOG_PREFIX}🧹 Running before_save command(s)..."
+      for command in "${before_save[@]}"; do
+        bash -c "$command"
+      done
+    fi
+
     cache
   else
     echo -e "${BK_LOG_PREFIX}🚨 $BK_CACHE_BACKEND is not supported or not provided. Soft failing..."

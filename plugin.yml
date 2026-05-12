@@ -21,6 +21,8 @@ configuration:
       type: [string]
     continue_on_error:
       type: boolean
+    before_save:
+      type: [string, array]
     pr:
       type: boolean
     s3:
