@@ -33,6 +33,7 @@ Plus, In addition to tarball & rsync, we also do not re-create another tarball f
   - [Usage with docker](#usage-with-docker)
   - [Adjust compression level](#adjust-compression-level)
   - [Continue to cache on failed builds](#continue-to-cache-on-failed-builds)
+  - [Run commands before saving a cache](#run-commands-before-saving-a-cache)
   - [Multi-threaded compression](#multi-threaded-compression)
   - [Auto deletion old caches](#auto-deletion-old-caches)
   - [Globs on paths](#globs-on-paths)
@@ -439,6 +440,31 @@ steps:
         paths:
           - bundle/vendor
         continue_on_error: true # Cache will be made even build fails.
+```
+
+## Run commands before saving a cache
+
+Use `before_save` to run commands after the step command has finished but before the plugin archives and uploads the cache. This is useful for pruning or cleaning files that should not be saved in the cache.
+
+```yaml
+steps:
+  - name: ':jest: Run tests'
+    key: jest
+    command: yarn test --runInBand
+    plugins:
+      - gencer/cache#v2.4.11:
+        id: node
+        backend: s3
+        key: "v1-cache-{{ id }}-{{ runner.os }}-{{ checksum 'pnpm-lock.yaml' }}"
+        restore-keys:
+          - 'v1-cache-{{ id }}-{{ runner.os }}-'
+          - 'v1-cache-{{ id }}-'
+        s3:
+          bucket: s3-bucket
+        paths:
+          - .pnpm-store
+        before_save:
+          - pnpm store prune || true
 ```
 
 ## Multi-threaded compression

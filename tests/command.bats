@@ -81,6 +81,53 @@ setup() {
   unstub aws
 }
 
+@test "Post-command runs before_save commands before syncing artifacts" {
+
+  stub mktemp \
+   " : echo '/tmp/tempfile'"
+  stub bsdtar \
+   "'' -cf /tmp/tempfile tests : echo Created tar archive"
+  stub mv \
+    "-f /tmp/tempfile v1-cache-key.tar : true"
+  stub aws \
+   "s3 cp --no-progress --profile my-profile v1-cache-key.tar s3://my-bucket/my-org/my-pipeline/v1-cache-key.tar : echo Copied to S3"
+
+  export BUILDKITE_ORGANIZATION_SLUG="my-org"
+  export BUILDKITE_PIPELINE_SLUG="my-pipeline"
+  export BUILDKITE_PLUGIN_CACHE_S3_BUCKET="my-bucket"
+  export BUILDKITE_PLUGIN_CACHE_S3_PROFILE="my-profile"
+  export BUILDKITE_PLUGIN_CACHE_BACKEND="s3"
+  export BUILDKITE_PLUGIN_CACHE_KEY="v1-cache-key"
+  export BUILDKITE_PLUGIN_CACHE_PATHS="tests"
+  export BUILDKITE_PLUGIN_CACHE_BEFORE_SAVE_0="echo Ran first before_save"
+  export BUILDKITE_PLUGIN_CACHE_BEFORE_SAVE_1="echo Ran second before_save"
+  export BUILDKITE_COMMAND_EXIT_STATUS="0"
+
+  run "$PWD/hooks/post-command"
+  assert_success
+  assert_output --partial "Running before_save command(s)"
+  assert_output --partial "Ran first before_save"
+  assert_output --partial "Ran second before_save"
+  assert_output --partial "Created tar archive"
+  assert_output --partial "Copied to S3"
+
+  unset BUILDKITE_COMMAND_EXIT_STATUS
+  unset BUILDKITE_PLUGIN_CACHE_BEFORE_SAVE_1
+  unset BUILDKITE_PLUGIN_CACHE_BEFORE_SAVE_0
+  unset BUILDKITE_PLUGIN_CACHE_PATHS
+  unset BUILDKITE_PLUGIN_CACHE_BACKEND
+  unset BUILDKITE_PLUGIN_CACHE_KEY
+  unset BUILDKITE_PLUGIN_CACHE_S3_PROFILE
+  unset BUILDKITE_PLUGIN_CACHE_S3_BUCKET
+  unset BUILDKITE_PIPELINE_SLUG
+  unset BUILDKITE_ORGANIZATION_SLUG
+
+  unstub mktemp
+  unstub bsdtar
+  unstub mv
+  unstub aws
+}
+
 @test "Cache key template evaluation on file" {
   CHECKSUM=355831032f586e782b45744f2ed79316cc830244
 
