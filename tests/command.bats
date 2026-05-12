@@ -13,9 +13,9 @@ setup() {
 
   stub aws \
    "s3api head-object --bucket my-bucket --key 'my-org/my-pipeline/v1-cache-key.tar' --profile my-profile : true" \
-   "s3 cp --profile my-profile s3://my-bucket/my-org/my-pipeline/v1-cache-key.tar . : echo Copied from S3"
+   "s3 cp --no-progress --profile my-profile s3://my-bucket/my-org/my-pipeline/v1-cache-key.tar . : echo Copied from S3"
 
-  stub tar \
+  stub bsdtar \
    "-xf v1-cache-key.tar -C . : echo Extracted tar archive"
 
   export BUILDKITE_ORGANIZATION_SLUG="my-org"
@@ -38,19 +38,19 @@ setup() {
   unset BUILDKITE_ORGANIZATION_SLUG
 
   unstub aws
-  unstub tar
+  unstub bsdtar
 }
 
 @test "Post-command syncs artifacts with a single path" {
 
   stub mktemp \
    " : echo '/tmp/tempfile'"
-  stub tar \
-   "--ignore-failed-read -cf /tmp/tempfile Pods : echo Created tar archive"
+  stub bsdtar \
+   "'' -cf /tmp/tempfile tests : echo Created tar archive"
   stub mv \
     "-f /tmp/tempfile v1-cache-key.tar : true"
   stub aws \
-   "s3 cp --profile my-profile v1-cache-key.tar s3://my-bucket/my-org/my-pipeline/v1-cache-key.tar : echo Copied to S3"
+   "s3 cp --no-progress --profile my-profile v1-cache-key.tar s3://my-bucket/my-org/my-pipeline/v1-cache-key.tar : echo Copied to S3"
 
   export BUILDKITE_ORGANIZATION_SLUG="my-org"
   export BUILDKITE_PIPELINE_SLUG="my-pipeline"
@@ -58,7 +58,7 @@ setup() {
   export BUILDKITE_PLUGIN_CACHE_S3_PROFILE="my-profile"
   export BUILDKITE_PLUGIN_CACHE_BACKEND="s3"
   export BUILDKITE_PLUGIN_CACHE_KEY="v1-cache-key"
-  export BUILDKITE_PLUGIN_CACHE_PATHS="Pods"
+  export BUILDKITE_PLUGIN_CACHE_PATHS="tests"
   export BUILDKITE_COMMAND_EXIT_STATUS="0"
 
   run "$PWD/hooks/post-command"
@@ -76,7 +76,7 @@ setup() {
   unset BUILDKITE_ORGANIZATION_SLUG
 
   unstub mktemp
-  unstub tar
+  unstub bsdtar
   unstub mv
   unstub aws
 }
@@ -86,9 +86,9 @@ setup() {
 
   stub aws \
    "s3api head-object --bucket my-bucket --key 'my-org/my-pipeline/v1-cache-key-${CHECKSUM}.tar' --profile my-profile : true" \
-   "s3 cp --profile my-profile s3://my-bucket/my-org/my-pipeline/v1-cache-key-${CHECKSUM}.tar . : echo Copied from S3"
+   "s3 cp --no-progress --profile my-profile s3://my-bucket/my-org/my-pipeline/v1-cache-key-${CHECKSUM}.tar . : echo Copied from S3"
 
-  stub tar \
+  stub bsdtar \
    "-xf v1-cache-key-${CHECKSUM}.tar -C . : echo Extracted tar archive"
 
   export BUILDKITE_ORGANIZATION_SLUG="my-org"
@@ -111,7 +111,7 @@ setup() {
   unset BUILDKITE_ORGANIZATION_SLUG
 
   unstub aws
-  unstub tar
+  unstub bsdtar
 }
 
 @test "Cache key template evaluation on dir" {
@@ -119,9 +119,9 @@ setup() {
 
   stub aws \
    "s3api head-object --bucket my-bucket --key 'my-org/my-pipeline/v1-cache-key-${CHECKSUM}.tar' --profile my-profile : true" \
-   "s3 cp --profile my-profile s3://my-bucket/my-org/my-pipeline/v1-cache-key-${CHECKSUM}.tar . : echo Copied from S3"
+   "s3 cp --no-progress --profile my-profile s3://my-bucket/my-org/my-pipeline/v1-cache-key-${CHECKSUM}.tar . : echo Copied from S3"
 
-  stub tar \
+  stub bsdtar \
    "-xf v1-cache-key-${CHECKSUM}.tar -C . : echo Extracted tar archive"
 
   export BUILDKITE_ORGANIZATION_SLUG="my-org"
@@ -144,7 +144,7 @@ setup() {
   unset BUILDKITE_ORGANIZATION_SLUG
 
   unstub aws
-  unstub tar
+  unstub bsdtar
 }
 
 @test "Cache key multi-template evaluation" {
@@ -152,9 +152,9 @@ setup() {
 
   stub aws \
    "s3api head-object --bucket my-bucket --key 'my-org/my-pipeline/v1-cache-key-${CHECKSUMS}.tar' --profile my-profile : true" \
-   "s3 cp --profile my-profile s3://my-bucket/my-org/my-pipeline/v1-cache-key-${CHECKSUMS}.tar . : echo Copied from S3"
+   "s3 cp --no-progress --profile my-profile s3://my-bucket/my-org/my-pipeline/v1-cache-key-${CHECKSUMS}.tar . : echo Copied from S3"
 
-  stub tar \
+  stub bsdtar \
    "-xf v1-cache-key-${CHECKSUMS}.tar -C . : echo Extracted tar archive"
 
   export BUILDKITE_ORGANIZATION_SLUG="my-org"
@@ -177,7 +177,7 @@ setup() {
   unset BUILDKITE_ORGANIZATION_SLUG
 
   unstub aws
-  unstub tar
+  unstub bsdtar
 }
 
 @test "Cache key template evaluation in middle of key" {
@@ -185,9 +185,9 @@ setup() {
 
   stub aws \
    "s3api head-object --bucket my-bucket --key 'my-org/my-pipeline/v1-cache-$CHECKSUM-key.tar' --profile my-profile : true" \
-   "s3 cp --profile my-profile s3://my-bucket/my-org/my-pipeline/v1-cache-$CHECKSUM-key.tar . : echo Copied from S3"
+   "s3 cp --no-progress --profile my-profile s3://my-bucket/my-org/my-pipeline/v1-cache-$CHECKSUM-key.tar . : echo Copied from S3"
 
-  stub tar \
+  stub bsdtar \
    "-xf v1-cache-$CHECKSUM-key.tar -C . : echo Extracted tar archive"
 
   export BUILDKITE_ORGANIZATION_SLUG="my-org"
@@ -210,7 +210,7 @@ setup() {
   unset BUILDKITE_ORGANIZATION_SLUG
 
   unstub aws
-  unstub tar
+  unstub bsdtar
 }
 
 @test "Cache key failed template evaluation fails" {
@@ -239,9 +239,9 @@ setup() {
 
   stub aws \
    "s3api head-object --bucket my-bucket --key 'my-org/my-pipeline/v1-cache-key.tar' --profile my-profile : true" \
-   "s3 cp --profile my-profile --acl bucket-owner-full-control s3://my-bucket/my-org/my-pipeline/v1-cache-key.tar . : echo Copied from S3"
+   "s3 cp --no-progress --profile my-profile --acl bucket-owner-full-control s3://my-bucket/my-org/my-pipeline/v1-cache-key.tar . : echo Copied from S3"
 
-  stub tar \
+  stub bsdtar \
    "-xf v1-cache-key.tar -C . : echo Extracted tar archive"
 
   export BUILDKITE_ORGANIZATION_SLUG="my-org"
@@ -266,5 +266,5 @@ setup() {
   unset BUILDKITE_ORGANIZATION_SLUG
 
   unstub aws
-  unstub tar
+  unstub bsdtar
 }
