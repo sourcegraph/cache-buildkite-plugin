@@ -133,6 +133,7 @@ function cache() {
   cache_locating "${TAR_TARGETS}"
   TAR_FILE="${CACHE_KEY}.${BK_TAR_EXTENSION}"
   if [ ! -f "$TAR_FILE" ]; then
+    run_before_save
     TMP_FILE="$(mktemp)"
     bsdtar "${BK_TAR_ARGS[@]}" "${TMP_FILE}" ${TAR_TARGETS}
     mv -f "${TMP_FILE}" "${TAR_FILE}"

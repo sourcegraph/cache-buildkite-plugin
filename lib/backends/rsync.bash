@@ -26,10 +26,12 @@ function cache() {
 
   if [ "${#paths[@]}" -eq 1 ]; then
     mkdir -p "${CACHE_PREFIX}/${CACHE_KEY}/${paths[*]}"
+    run_before_save
     rsync -a "$RSYNC_ARGS" --delete "${paths[*]}/" "${CACHE_PREFIX}/${CACHE_KEY}/${paths[*]}/"
   elif
     [ "${#paths[@]}" -gt 1 ]
   then
+    run_before_save
     for path in "${paths[@]}"; do
       mkdir -p "${CACHE_PREFIX}/${CACHE_KEY}/${path}"
       rsync -a "$RSYNC_ARGS" --delete "${path}/" "${CACHE_PREFIX}/${CACHE_KEY}/${path}/"

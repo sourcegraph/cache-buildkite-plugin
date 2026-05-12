@@ -81,6 +81,10 @@ function info() {
   echo -e "${BK_LOG_PREFIX}ℹ️ $1"
 }
 
+function run_before_save() {
+  true
+}
+
 function source_locating() {
   echo -e "${BK_LOG_PREFIX}🔍 Locating source: $1"
 }
