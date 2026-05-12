@@ -113,6 +113,7 @@ function cache() {
   mkdir -p "${CACHE_PREFIX}"
   TAR_FILE="${CACHE_PREFIX}/${CACHE_KEY}.${BK_TAR_EXTENSION}"
   if [ ! -f "$TAR_FILE" ]; then
+    run_before_save
     TMP_FILE="$(mktemp)"
     tar "${BK_TAR_ARGS[@]}" "${TMP_FILE}" ${TAR_TARGETS}
     mv -f "${TMP_FILE}" "${TAR_FILE}"

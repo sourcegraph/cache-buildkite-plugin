@@ -128,6 +128,39 @@ setup() {
   unstub aws
 }
 
+@test "Post-command skips before_save commands when S3 cache archive already exists" {
+
+  plugin_dir="$PWD"
+  workspace="$(mktemp -d)"
+  mkdir -p "$workspace/tests"
+  touch "$workspace/v1-cache-key.tar"
+
+  export BUILDKITE_ORGANIZATION_SLUG="my-org"
+  export BUILDKITE_PIPELINE_SLUG="my-pipeline"
+  export BUILDKITE_PLUGIN_CACHE_S3_BUCKET="my-bucket"
+  export BUILDKITE_PLUGIN_CACHE_S3_PROFILE="my-profile"
+  export BUILDKITE_PLUGIN_CACHE_BACKEND="s3"
+  export BUILDKITE_PLUGIN_CACHE_KEY="v1-cache-key"
+  export BUILDKITE_PLUGIN_CACHE_PATHS="tests"
+  export BUILDKITE_PLUGIN_CACHE_BEFORE_SAVE="echo Ran before_save"
+  export BUILDKITE_COMMAND_EXIT_STATUS="0"
+
+  run bash -c "cd '$workspace' && '$plugin_dir/hooks/post-command'"
+  assert_success
+  refute_output --partial "Running before_save command(s)"
+  refute_output --partial "Ran before_save"
+
+  unset BUILDKITE_COMMAND_EXIT_STATUS
+  unset BUILDKITE_PLUGIN_CACHE_BEFORE_SAVE
+  unset BUILDKITE_PLUGIN_CACHE_PATHS
+  unset BUILDKITE_PLUGIN_CACHE_BACKEND
+  unset BUILDKITE_PLUGIN_CACHE_KEY
+  unset BUILDKITE_PLUGIN_CACHE_S3_PROFILE
+  unset BUILDKITE_PLUGIN_CACHE_S3_BUCKET
+  unset BUILDKITE_PIPELINE_SLUG
+  unset BUILDKITE_ORGANIZATION_SLUG
+}
+
 @test "Cache key template evaluation on file" {
   CHECKSUM=355831032f586e782b45744f2ed79316cc830244
 
